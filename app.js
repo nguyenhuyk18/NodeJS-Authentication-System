@@ -6,6 +6,7 @@ import dotenv from "dotenv"; // Importing dotenv to load environment variables
 import session from "express-session"; // Importing express-session for session management
 import passport from "passport"; // Importing passport for authentication
 import { Strategy as GoogleStrategy } from "passport-google-oauth20"; // Importing Google OAuth 2.0 strategy for passport
+import MongoStore from "connect-mongo"
 
 import { connectUsingMongoose } from "./config/mongodb.js"; // Importing MongoDB connection function
 import router from "./routes/routes.js"; // Importing main application routes
@@ -17,6 +18,7 @@ const app = express(); // Initializing express application
 //SESSION
 app.use(
   session({
+    store: MongoStore.create({ mongoUrl: process.env.DB_URL }),
     secret: "SecretKey",
     resave: false,
     saveUninitialized: true,
@@ -38,7 +40,7 @@ passport.use(
       clientID: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
       callbackURL:
-        "https://nodejs-authentication-system-l2pu.onrender.com/auth/google/callback",
+        "http://localhost:1902/auth/google/callback",
       scope: ["profile", "email"],
     },
     function (accessToken, refreshToken, profile, callback) {
@@ -67,11 +69,12 @@ connectUsingMongoose();
 app.get("/", (req, res) => {
   res.send("Hey Ninja ! Go to /user/signin for the login page.");
 });
+
 app.use("/user", router);
 app.use("/auth", authrouter);
 app.use(express.static("public"));
 
 //LISTEN
 app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
+  console.log(`Server is running on port http://localhost:${process.env.PORT}`);
 });
